@@ -94,3 +94,28 @@ describe('GET /todos/:id', () => {
         .end(done);
     });
 });
+
+describe('DELETE /todos/is',()=>{
+    it('should remove a todo',(done)=>{
+        request(app)
+        .delete(`/todos/${todos[0]._id.toHexString()}`)
+        .expect(200)
+        .expect((res) => {
+            
+          expect(res.body.docs.text).toBe(todos[0].text);
+        })
+        .end(done);
+    });
+    it(' Should return 404 if todo not found',(done)=>{
+        request(app)
+        .delete('/todos/5b729e57b927fa4470be7b67')
+        .expect(404)
+        .end(done);
+    });
+    it(' Should return 404 if todo id is not valid',(done)=>{
+        request(app)
+        .delete('/todos/123')
+        .expect(404)
+        .end(done);
+    });
+});
