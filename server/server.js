@@ -84,7 +84,21 @@ app.patch('/todos/:id',(req,res)=>{
         res.status(400).send('Yedhuku');
     });
 });
-
+app.post('/user',(req,res)=>{
+    var body = _.pick(req.body,['email','password']);
+    var user = new User(body);
+    
+    console.log(JSON.stringify(user));
+    
+    user.save().then(()=>{
+        return user.generateAuthToken();
+    }).then((token)=>{
+        console.log(user);
+        res.header('x-auth',token).send(user);
+    }).catch((e)=>{
+        res.status(401).send(e);
+    });
+});
 app.listen(port,()=>{
     console.log(`Started up at port ${port}`);
     
