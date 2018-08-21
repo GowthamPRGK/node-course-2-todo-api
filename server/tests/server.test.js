@@ -4,24 +4,17 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
+const {todos,populateTodos,users,populateUsers} = require('./seed/seed');
 
-const todos = [{
-    _id: new ObjectID(),
-    text:'Text number 1'
-},{
-    _id: new ObjectID(),
-    text:'Text number 2',
-    completed: true,
-    completedAt: 333
-}];
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
-beforeEach((done)=>{
-    Todo.remove({}).then(()=>{
-       return Todo.insertMany(todos).then(()=>{done()});
-    });
-});
-
+setTimeout(()=>{
+    console.log('hrllo');
+    
+},(3000));
 describe('POST /todos',()=>{
+    
     it('should create a  new todo',(done)=>{
         var text = 'PRGs engineer';
 
@@ -153,5 +146,27 @@ describe('PATCH /todos/:id',()=>{
             expect(res.body.todo.completedAt).toNotExist();
         })
         .end(done);        
+    });
+});
+describe('GET /users/me',()=>{
+    it('Should return the user is the authenicaion is successful',(done)=>{
+        request(app)
+        .get('/users/me')
+        .set('x-auth',users[0].tokens[0].token)
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body._id).toBe(users[0]._id.toHexString());
+            expect(res.body.email).toBe(users[0].email);
+        })
+        .end(done);
+    });
+    it('should return 401 if failed authentication',(done)=>{
+        request(app)
+        .get('/users/me')
+        .expect(401)
+        .expect((res)=>{
+            expect(res.body).toEqual({});
+        })
+        .end(done);
     });
 });

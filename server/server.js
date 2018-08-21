@@ -3,6 +3,7 @@ const _ = require('lodash');
 const {ObjectID} = require('mongodb')
 var express = require('express');
 var bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo}=require('./models/todo');
@@ -101,6 +102,17 @@ app.post('/user',(req,res)=>{
         res.status(401).send(e);
     });
 });
+app.post('/users/login',(req,res)=>{
+    var hashedPassword;
+    var body = _.pick(req.body,['email','password']);
+    console.log(body);    
+    User.findByCredentials(body.email,body.password).then((user)=>{
+        res.header('x-auth',user.tokens[0].token).send(user);
+    }).catch((e)=>{
+        res.status(401).send();
+    })
+});
+
 app.listen(port,()=>{
     console.log(`Started up at port ${port}`);
     
