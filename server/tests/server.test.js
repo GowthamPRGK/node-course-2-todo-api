@@ -1,6 +1,7 @@
 const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb');
+const {User} = require('./../models/user');
 
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
@@ -148,6 +149,9 @@ describe('PATCH /todos/:id',()=>{
         .end(done);        
     });
 });
+
+
+
 describe('GET /users/me',()=>{
     it('Should return the user is the authenicaion is successful',(done)=>{
         request(app)
@@ -170,3 +174,48 @@ describe('GET /users/me',()=>{
         .end(done);
     });
 });
+
+describe('POST /users',()=>{
+    it('should creat a user',(done)=>{
+        var email = 'karnan@gmail.com';
+        var password = '123abd!';
+        request(app)
+        .post('/users')
+        .send({email,password})
+        .expect(200)
+        .expect((res)=>{
+            expect(res.header['x-auth']).toExist();
+            expect(res.body._id).toExist();
+            expect(res.body.email).toBe(email);
+        })
+        .end((err)=>{
+            if(err)
+            {
+                return done(err);
+            }
+            User.findOne({email}).then((user)=>{
+                expect(user).toExist();
+                expect(user.password).toNotBe(password);
+                done();
+            })
+        });
+    });
+    it('should return validation error',(done)=>{
+        var email = 'gowtham'
+        var password = 'abc';
+        request(app)
+        .post('/users')
+        .send({email,password})
+        .expect(401)
+        .end(done)
+    });
+    it('should not create a user if email already exixt',(done)=>{
+        var email = users[0].email;
+        var password = '123abd!';
+        request(app)
+        .post('/users')
+        .send({email,password})
+        .expect(401)
+        .end(done)
+    });
+})
